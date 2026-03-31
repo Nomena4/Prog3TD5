@@ -1,37 +1,31 @@
 package com.example.td5.service;
 
-import com.example.td5.entity.Ingredient;
-import com.example.td5.entity.StockValue;
-import com.example.td5.exception.IngredientNotFoundException;
-import com.example.td5.repository.IngredientRepository;
-import com.example.td5.repository.StockMovementRepository;
-import org.springframework.stereotype.Service;
 
+import com.example.td5.entity.Ingredient;
+import com.example.td5.repository.IngredientRepository;
+import org.springframework.stereotype.Service;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class IngredientService {
 
-    private final IngredientRepository ingredientRepo;
-    private final StockMovementRepository stockRepo;
+    private final IngredientRepository ingredientRepository;
 
-    public IngredientService(IngredientRepository ingredientRepo, StockMovementRepository stockRepo) {
-        this.ingredientRepo = ingredientRepo; this.stockRepo = stockRepo;
+    public IngredientService(IngredientRepository ingredientRepository) {
+        this.ingredientRepository = ingredientRepository;
     }
 
-    public List<Ingredient> getAll() throws SQLException {
-        return ingredientRepo.findAll();
+    public List<Ingredient> getAllIngredients() throws SQLException {
+        return ingredientRepository.findAll();
     }
 
-    public Ingredient getById(Long id) throws SQLException {
-        return ingredientRepo.findById(id)
-                .orElseThrow(() -> new IngredientNotFoundException(id));
+    public Optional<Ingredient> getIngredientById(Long id) throws SQLException {
+        return ingredientRepository.findById(id);
     }
 
-    public StockValue getStock(Long id, LocalDateTime at, String unit) throws SQLException {
-        getById(id); // vérifie existence
-        return stockRepo.getStockAt(id, at, unit);
+    public Optional<Integer> getStockById(Long id) throws SQLException {
+        return ingredientRepository.findStockById(id);
     }
 }

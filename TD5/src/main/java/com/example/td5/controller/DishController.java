@@ -1,11 +1,10 @@
 package com.example.td5.controller;
 
-import com.example.td5.entity.Dish;
-import com.example.td5.entity.Ingredient;
+import com.example.td5.exception.DishNotFoundException;
+import com.example.td5.service.DishService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/dishes")
@@ -17,26 +16,43 @@ public class DishController {
         this.dishService = dishService;
     }
 
+    // GET /dishes
     @GetMapping
-    public ResponseEntity<List<Dish>> getAllDishes() {
-        return ResponseEntity.ok(dishService.getAllDishes());
+    public ResponseEntity<?> getAllDishes() {
+        try {
+            return ResponseEntity.ok(dishService.getAllDishes());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
     }
 
     @PutMapping("/{id}/ingredients")
-    public ResponseEntity<?> updateDishIngredients(
+    public ResponseEntity<?> addIngredientToDish(
             @PathVariable Long id,
-            @RequestBody(required = false) List<Ingredient> ingredients) {
-
-        if (ingredients == null) {
-            return ResponseEntity.status(400)
-                    .body("Request body is required and must contain a list of ingredients.");
-        }
-
+            @RequestParam Long ingredientId) {
         try {
-            Dish updated = dishService.updateIngredients(id, ingredients);
-            return ResponseEntity.ok(updated);
+            dishService.addIngredientToDish(id, ingredientId);
+            return ResponseEntity.ok("Ingredient added successfully");
         } catch (DishNotFoundException e) {
-            return ResponseEntity.status(404).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/ingredients")
+    public ResponseEntity<?> getDishIngredients(
+            @PathVariable Long id,
+            @RequestParam(required = false) String ingredientName,
+            @RequestParam(required = false) Double ingredientPriceAround) {
+        try {
+            return ResponseEntity.ok(
+                    dishService.getDishIngredients(id, ingredientName, ingredientPriceAround)
+            );
+        } catch (DishNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
         }
     }
 }
